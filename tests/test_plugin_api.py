@@ -38,6 +38,7 @@ class FailingServiceSystem(FakeSystem):
 
 class SetupArgs:
     token: str = "secret-token"
+    account_id: str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     wildcard_domain: str = "*.dev.dashen.wang"
 
 
@@ -100,8 +101,10 @@ def test_configure_installs_service_saves_configuration_and_masks_sensitive_valu
 ) -> None:
     plugin = cf_tunnel_main(dependencies(tmp_path / "config.json"))
 
-    payload = plugin.configure(SetupArgs())
+    saved = plugin.save_settings(SetupArgs())
+    payload = plugin.configure(object())
 
+    assert saved["status"] is True
     assert payload["status"] is True
     assert status_data(payload)["wildcard_domain"] == "*.dev.dashen.wang"
     assert "secret-token" not in str(payload)
@@ -112,7 +115,8 @@ def test_configured_plugin_status_includes_cloudflare_tunnel_and_dns_health(
     tmp_path: Path,
 ) -> None:
     plugin = cf_tunnel_main(dependencies(tmp_path / "config.json"))
-    _ = plugin.configure(SetupArgs())
+    _ = plugin.save_settings(SetupArgs())
+    _ = plugin.configure(object())
 
     payload = plugin.get_status(object())
 
@@ -127,9 +131,36 @@ def test_configure_keeps_remote_configuration_when_service_registration_fails(
     location = tmp_path / "config.json"
     plugin = cf_tunnel_main(failing_service_dependencies(location))
 
-    payload = plugin.configure(SetupArgs())
+    _ = plugin.save_settings(SetupArgs())
+    payload = plugin.configure(object())
 
     assert payload["status"] is False
     saved = ConfigStore(location).load()
     assert saved is not None
     assert saved.tunnel_id == "tunnel-id"
+
+
+def test_save_settings_persists_account_credentials_without_configuring(
+    tmp_path: Path,
+) -> None:
+    plugin = cf_tunnel_main(dependencies(tmp_path / "config.json"))
+
+    payload = plugin.save_settings(SetupArgs())
+    status = plugin.get_status(object())
+
+    assert payload["status"] is True
+    data = status_data(status)
+    assert data["settings_saved"] is True
+    assert data["configured"] is False
+    assert data["account_id"] == "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    assert "secret-token" not in str(payload)
+
+
+def test_configure_requires_saved_settings(tmp_path: Path) -> None:
+    payload = cf_tunnel_main(dependencies(tmp_path / "config.json")).configure(object())
+
+    assert payload == {
+        "status": False,
+        "msg": "请先保存帐户 ID、API Token 和通配测试域名",
+        "data": {},
+    }

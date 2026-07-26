@@ -6,9 +6,13 @@ from pathlib import Path
 from typing import cast, final
 
 try:
-    from .domain import PluginConfig, parse_wildcard_domain
+    from .domain import (
+        PluginConfig,
+        parse_cloudflare_account_id,
+        parse_wildcard_domain,
+    )
 except ImportError:
-    from domain import PluginConfig, parse_wildcard_domain
+    from domain import PluginConfig, parse_cloudflare_account_id, parse_wildcard_domain
 
 
 @final
@@ -28,11 +32,16 @@ class ConfigStore:
         if not isinstance(raw_payload, dict):
             raise TypeError("插件配置文件格式异常")
         payload = cast(dict[str, object], raw_payload)
+        account_id = self._optional_string(payload, "account_id")
         return PluginConfig(
             token=str(payload["token"]),
             wildcard=parse_wildcard_domain(str(payload["wildcard_domain"])),
             zone_id=self._optional_string(payload, "zone_id"),
-            account_id=self._optional_string(payload, "account_id"),
+            account_id=(
+                parse_cloudflare_account_id(account_id)
+                if account_id is not None
+                else None
+            ),
             tunnel_id=self._optional_string(payload, "tunnel_id"),
             tunnel_name=self._optional_string(payload, "tunnel_name"),
             dns_target=self._optional_string(payload, "dns_target"),
@@ -47,7 +56,11 @@ class ConfigStore:
                     "token": config.token,
                     "wildcard_domain": config.wildcard.value,
                     "zone_id": config.zone_id,
-                    "account_id": config.account_id,
+                    "account_id": (
+                        config.account_id.value
+                        if config.account_id is not None
+                        else None
+                    ),
                     "tunnel_id": config.tunnel_id,
                     "tunnel_name": config.tunnel_name,
                     "dns_target": config.dns_target,

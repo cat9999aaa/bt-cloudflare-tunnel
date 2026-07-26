@@ -9,7 +9,7 @@
 
 ## 1. Atmosphere & Identity
 
-Reading this as: an operational developer settings screen embedded in BaoTa for a technical administrator, with a calm, trustworthy control-panel language. The signature is a **connected route**: a small blue-to-amber SVG path joining Cloudflare, Tunnel and BaoTa, while the rest of the surface remains quiet and state-driven. Design variance 3, motion intensity 2, visual density 6.
+Reading this as: an operational developer settings screen embedded in BaoTa for a technical administrator, with a calm, trustworthy control-panel language. The redesign uses a compact **configuration ledger**: a single coherent settings surface, a small live-status rail and explicit save/configure phases. The signature is a quiet blue-to-amber route marker only in the header; the interface avoids a marketing-style hero and repeated floating cards. Design variance 3, motion intensity 2, visual density 7.
 
 ## 2. Color
 
@@ -28,6 +28,7 @@ Reading this as: an operational developer settings screen embedded in BaoTa for 
 | Success background | `--cf-success-bg` | `#ecfdf3` | Healthy status chip |
 | Warning | `--cf-warning` | `#b54708` | Safety and incomplete status text |
 | Warning background | `--cf-warning-bg` | `#fffaeb` | Safety notice |
+| Warning border | `--cf-warning-border` | `#fedf89` | Safety notice boundary |
 | Error | `--cf-danger` | `#b42318` | Error state text |
 | Error background | `--cf-danger-bg` | `#fef3f2` | Error message background |
 
@@ -76,10 +77,16 @@ Base unit: 4px. Tokens: `--cf-space-1: 4px`, `--cf-space-2: 8px`, `--cf-space-3:
 
 ### Setup form
 
-- Structure: labelled Token input, labelled wildcard-domain input, persistent helper text, primary action and live result region.
-- States: default, focus, invalid, submitting, success, server error.
+- Structure: labelled Account ID, API Token and wildcard-domain inputs, persistent helper text, explicit `保存设置` primary action, secondary `一键安装并配置` action and live result region.
+- States: unsaved, saved, focus, invalid, submitting, success, server error.
 - Accessibility: visible labels, `autocomplete="off"` for token, error tied via `aria-describedby`, 44px controls and non-stealing `aria-live="polite"` feedback.
 - Motion: button loading state only; no layout animation.
+
+### Configuration phase actions
+
+- `保存设置` persists only Account ID, API Token and wildcard domain; it never contacts Cloudflare or changes system services.
+- `一键安装并配置` uses the saved settings; it is unavailable until settings are present.
+- The status rail distinguishes `设置已保存` from `开发通道已就绪`, so a developer knows whether the next required action is saving, configuring or repairing a service.
 
 ### Action button
 
@@ -109,3 +116,4 @@ Strategy: **mixed tonal shift plus one subtle border**. White surfaces sit on a 
 - WCAG target: 2.2 AA. Body contrast is at least 4.5:1; every control has an obvious keyboard focus ring; all functions are keyboard usable; zoom, narrow width and reduced motion are supported.
 - User personas: a time-pressured developer diagnosing a failed tunnel, a first-time developer who needs permission guidance, and a keyboard-only administrator. Each must find the current state and the next action without guessing.
 - Accepted debt: the host BaoTa modal shell supplies outer landmarks and focus trapping; this plugin can only make its own form and feedback semantic. The imported host shell will be checked manually during panel QA.
+- The plugin prefers BaoTa's built-in `request_plugin` transport when the host supplies it; local static previews intentionally cannot call panel endpoints and must report that limitation without exposing any credential.

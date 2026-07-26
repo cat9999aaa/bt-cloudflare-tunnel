@@ -4,14 +4,14 @@ import json
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from http.client import HTTPResponse
-from typing import Protocol, TypeAlias, cast, final
+from typing import TypeAlias, cast, final
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 try:
-    from .domain import PluginConfig, WildcardDomain
+    from .domain import WildcardDomain
 except ImportError:
-    from domain import PluginConfig, WildcardDomain
+    from domain import WildcardDomain
 
 _API_BASE = "https://api.cloudflare.com/client/v4"
 JsonScalar: TypeAlias = str | int | float | bool | None
@@ -59,18 +59,6 @@ class CloudflareApiError(Exception):
 
     def __str__(self) -> str:
         return self.message
-
-
-class TunnelApi(Protocol):
-    def resolve_zone(self, wildcard: WildcardDomain) -> Zone: ...
-
-    def create_tunnel(self, zone: Zone, name: str) -> TunnelDetails: ...
-
-    def put_ingress(self, tunnel: TunnelDetails, wildcard: WildcardDomain) -> None: ...
-
-    def upsert_wildcard_cname(
-        self, zone: Zone, tunnel: TunnelDetails, wildcard: WildcardDomain
-    ) -> DnsBinding: ...
 
 
 @final
@@ -266,45 +254,4 @@ class CloudflareClient:
             id=cls._string_value(payload, "id"),
             name=cls._string_value(payload, "name"),
             account_id=cls._string_value(account, "id"),
-        )
-
-
-@final
-class ConfigurationService:
-    """Creates the one wildcard Tunnel route used by all Baota development sites."""
-
-    def __init__(self, client: TunnelApi) -> None:
-        self._client = client
-
-    def configure(self, config: PluginConfig) -> ConfigurationResult:
-        zone = self._client.resolve_zone(config.wildcard)
-        tunnel = self._saved_tunnel(config, zone) or self._client.create_tunnel(
-            zone, "bt-cf-" + zone.name.replace(".", "-")
-        )
-        self._client.put_ingress(tunnel, config.wildcard)
-        return ConfigurationResult(
-            zone=zone,
-            tunnel=tunnel,
-            dns_binding=self._client.upsert_wildcard_cname(
-                zone, tunnel, config.wildcard
-            ),
-        )
-
-    @staticmethod
-    def _saved_tunnel(config: PluginConfig, zone: Zone) -> TunnelDetails | None:
-        account_id = config.account_id
-        tunnel_id = config.tunnel_id
-        tunnel_name = config.tunnel_name
-        if (
-            config.zone_id != zone.id
-            or account_id != zone.account_id
-            or account_id is None
-            or tunnel_id is None
-            or tunnel_name is None
-        ):
-            return None
-        return TunnelDetails(
-            id=tunnel_id,
-            name=tunnel_name,
-            account_id=account_id,
         )

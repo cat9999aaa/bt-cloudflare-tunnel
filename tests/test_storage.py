@@ -4,7 +4,11 @@ import json
 import stat
 from pathlib import Path
 
-from cf_tunnel.domain import PluginConfig, parse_wildcard_domain
+from cf_tunnel.domain import (
+    PluginConfig,
+    parse_cloudflare_account_id,
+    parse_wildcard_domain,
+)
 from cf_tunnel.storage import ConfigStore
 
 
@@ -16,10 +20,16 @@ def test_store_writes_private_configuration_without_returning_plaintext(
     config = PluginConfig(
         token="token-that-must-not-be-returned",
         wildcard=parse_wildcard_domain("*.dashen.wang"),
+        account_id=parse_cloudflare_account_id("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
     )
+    assert config.account_id is not None
 
     store.save(config)
 
     assert stat.S_IMODE(location.stat().st_mode) == 0o600
     assert store.load() == config
     assert json.loads(location.read_text(encoding="utf-8"))["token"] == config.token
+    assert (
+        json.loads(location.read_text(encoding="utf-8"))["account_id"]
+        == config.account_id.value
+    )

@@ -7,7 +7,7 @@
 ## 功能
 
 - 默认在宝塔首页显示应用入口与简要健康状态。
-- 独立设置页，填写 Cloudflare API Token 和任意左侧通配测试域名。
+- 独立设置页，保存 Cloudflare 帐户 ID、API Token 和任意左侧通配测试域名。
 - 一键安装 `cloudflared`，创建远程管理 Tunnel，配置通配 ingress 和 Cloudflare DNS CNAME，并注册为系统服务。
 - 状态诊断：`cloudflared` 版本、系统服务、Cloudflare Tunnel 是否有连接、DNS 是否仍正确绑定。
 - 支持 `*.dashen.wang`、`*.dev.dashen.wang`、`*.test.example.com` 等任意由当前 Token 管理的通配域名。
@@ -71,13 +71,15 @@ Cloudflare Tunnel
 ## 首次配置
 
 1. 打开插件设置页。
-2. 输入上表权限范围内的 Cloudflare API Token。
-3. 输入通配测试域名，例如 `*.dev.dashen.wang` 或 `*.dashen.wang`。
-4. 点击「一键安装并配置」。
+2. 输入 Cloudflare 帐户 ID（32 位十六进制字符串）。它可在 Cloudflare 帐户页面或 API Token 创建完成页找到。
+3. 输入上表权限范围内的 Cloudflare API Token。
+4. 输入通配测试域名，例如 `*.dev.dashen.wang` 或 `*.dashen.wang`。
+5. 点击「保存设置」：此步骤只将设置以 `0600` 权限保存到宝塔本机，不会访问 Cloudflare、安装软件或改动 DNS。
+6. 确认状态显示「已保存，等待配置」后，点击「一键安装并配置」。
 
 插件会：
 
-1. 校验通配域名格式与 Token 能访问的 Zone。
+1. 校验通配域名格式，并确认帐户 ID 与 Token 能访问的 Zone 所属账号一致。
 2. 使用 Cloudflare 官方软件源安装 `cloudflared`（apt、dnf、yum）。
 3. 创建一条远程管理的 Cloudflare Tunnel。
 4. 在 Tunnel 中配置这一条通配入口，并统一交给本机宝塔 Web 服务。

@@ -48,8 +48,9 @@ cloudflared 系统服务 ── 单条通配 ingress ── 本机宝塔 Web 服
 ## 用户流程
 
 1. 用户从宝塔首页的应用卡片打开设置。
-2. 填写 Cloudflare API Token 与通配测试域名，例如 `*.dev.dashen.wang`。
-3. 点击「一键安装并配置」。
+2. 填写 Cloudflare 帐户 ID、API Token 与通配测试域名，例如 `*.dev.dashen.wang`。
+3. 点击「保存设置」。
+4. 点击「一键安装并配置」。
 4. 应用验证域名格式和 Token，解析所属 Cloudflare Zone，安装 `cloudflared`，创建或复用 Tunnel，写入 Cloudflare 通配 DNS 与 ingress，并安装/启动系统服务。
 5. 首页卡片和设置页显示安装、Tunnel、DNS 绑定、最近检查与安全提示。
 6. 用户在宝塔「网站」中添加任意匹配的站点；应用无需再操作。
@@ -67,7 +68,7 @@ cloudflared 系统服务 ── 单条通配 ingress ── 本机宝塔 Web 服
 
 首页卡片默认展示图标、名称、通配测试域名和四个状态：`cloudflared`、系统服务、Tunnel 连接、DNS 绑定；它提供「去配置 / 查看诊断 / 打开设置」的单个主动作。
 
-设置页提供初次配置表单（API Token、通配测试域名）、一键安装并配置、刷新状态、重启服务、完整状态与安全提醒。动态文本必须通过 DOM 文本 API 渲染，绝不把 Cloudflare 响应当 HTML 插入。
+设置页提供初次配置表单（帐户 ID、API Token、通配测试域名）、只保存设置的显式动作、一键安装并配置、刷新状态、重启服务、完整状态与安全提醒。动态文本必须通过 DOM 文本 API 渲染，绝不把 Cloudflare 响应当 HTML 插入。
 
 ## 错误处理与验收
 

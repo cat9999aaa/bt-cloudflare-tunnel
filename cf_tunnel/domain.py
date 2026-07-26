@@ -15,17 +15,23 @@ class WildcardDomain:
 
 
 @dataclass(frozen=True, slots=True)
+class CloudflareAccountId:
+    value: str
+
+
+@dataclass(frozen=True, slots=True)
 class PluginConfig:
     token: str
     wildcard: WildcardDomain
     zone_id: str | None = None
-    account_id: str | None = None
+    account_id: CloudflareAccountId | None = None
     tunnel_id: str | None = None
     tunnel_name: str | None = None
     dns_target: str | None = None
 
 
 _LABEL = re.compile(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
+_ACCOUNT_ID = re.compile(r"[a-f0-9]{32}$")
 
 
 def parse_wildcard_domain(raw: str) -> WildcardDomain:
@@ -39,3 +45,10 @@ def parse_wildcard_domain(raw: str) -> WildcardDomain:
         raise DomainValidationError("请输入有效的通配 FQDN")
 
     return WildcardDomain(value=value, hostname=hostname)
+
+
+def parse_cloudflare_account_id(raw: str) -> CloudflareAccountId:
+    value = raw.strip().lower()
+    if _ACCOUNT_ID.fullmatch(value) is None:
+        raise DomainValidationError("请输入 32 位 Cloudflare 帐户 ID")
+    return CloudflareAccountId(value=value)

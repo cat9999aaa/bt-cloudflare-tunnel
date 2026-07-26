@@ -10,10 +10,15 @@ try:
         CloudflareApiError,
         CloudflareClient,
         ConfigurationResult,
-        ConfigurationService,
         RemoteStatus,
     )
-    from .domain import DomainValidationError, PluginConfig, parse_wildcard_domain
+    from .configuration import ConfigurationService
+    from .domain import (
+        DomainValidationError,
+        PluginConfig,
+        parse_cloudflare_account_id,
+        parse_wildcard_domain,
+    )
     from .storage import ConfigStore
     from .system_service import CloudflaredStatus, CloudflaredSystem, OperationResult
 except ImportError:
@@ -21,10 +26,15 @@ except ImportError:
         CloudflareApiError,
         CloudflareClient,
         ConfigurationResult,
-        ConfigurationService,
         RemoteStatus,
     )
-    from domain import DomainValidationError, PluginConfig, parse_wildcard_domain
+    from configuration import ConfigurationService
+    from domain import (
+        DomainValidationError,
+        PluginConfig,
+        parse_cloudflare_account_id,
+        parse_wildcard_domain,
+    )
     from storage import ConfigStore
     from system_service import CloudflaredStatus, CloudflaredSystem, OperationResult
 
@@ -66,12 +76,20 @@ class cf_tunnel_main:
         config = self._store.load()
         cloudflared = self._system.inspect()
         remote = self._read_remote_status(config)
+        settings_saved = config is not None and config.account_id is not None
+        configured = self._is_configured(config)
         return {
             "status": True,
             "msg": "状态获取成功",
             "data": {
-                "configured": config is not None,
+                "settings_saved": settings_saved,
+                "configured": configured,
                 "wildcard_domain": config.wildcard.value if config is not None else "",
+                "account_id": (
+                    config.account_id.value
+                    if config is not None and config.account_id is not None
+                    else ""
+                ),
                 "cloudflared_installed": cloudflared.installed,
                 "cloudflared_version": cloudflared.version,
                 "service_active": cloudflared.service_active,
@@ -80,18 +98,51 @@ class cf_tunnel_main:
             },
         }
 
-    def configure(self, args: object) -> dict[str, object]:
+    def save_settings(self, args: object) -> dict[str, object]:
         token = getattr(args, "token", "")
+        raw_account_id = getattr(args, "account_id", "")
         raw_domain = getattr(args, "wildcard_domain", "")
         if not isinstance(token, str) or not token.strip():
             return self._failure("请填写 Cloudflare API Token")
+        if not isinstance(raw_account_id, str):
+            return self._failure("请填写 Cloudflare 帐户 ID")
         if not isinstance(raw_domain, str):
             return self._failure("请填写通配测试域名")
 
         try:
+            account_id = parse_cloudflare_account_id(raw_account_id)
             config = PluginConfig(
-                token=token.strip(), wildcard=parse_wildcard_domain(raw_domain)
+                token=token.strip(),
+                wildcard=parse_wildcard_domain(raw_domain),
+                account_id=account_id,
             )
+            existing = self._store.load()
+            if (
+                existing is not None
+                and existing.account_id == config.account_id
+                and existing.wildcard == config.wildcard
+            ):
+                config = replace(existing, token=config.token)
+            self._store.save(config)
+        except DomainValidationError as error:
+            return self._failure(str(error))
+
+        return {
+            "status": True,
+            "msg": "设置已保存，可开始一键配置",
+            "data": {
+                "wildcard_domain": config.wildcard.value,
+                "account_id": account_id.value,
+            },
+        }
+
+    def configure(self, _args: object) -> dict[str, object]:
+        config = self._store.load()
+        account_id = config.account_id if config is not None else None
+        if config is None or account_id is None:
+            return self._failure("请先保存帐户 ID、API Token 和通配测试域名")
+
+        try:
             installation = self._system.install_package()
             if not installation.success:
                 return self._failure(installation.message)
@@ -99,7 +150,6 @@ class cf_tunnel_main:
             saved_config = replace(
                 config,
                 zone_id=result.zone.id,
-                account_id=result.zone.account_id,
                 tunnel_id=result.tunnel.id,
                 tunnel_name=result.tunnel.name,
                 dns_target=result.dns_binding.target,
@@ -108,8 +158,6 @@ class cf_tunnel_main:
             service = self._system.install_service(tunnel_token)
             if not service.success:
                 return self._failure(service.message)
-        except DomainValidationError as error:
-            return self._failure(str(error))
         except CloudflareApiError as error:
             return self._failure(str(error))
 
@@ -146,7 +194,7 @@ class cf_tunnel_main:
             return RemoteStatus(tunnel_connected=False, dns_bound=False)
         client = CloudflareClient(config.token)
         tunnel = client.tunnel_from_values(
-            config.tunnel_id, config.tunnel_name, config.account_id
+            config.tunnel_id, config.tunnel_name, config.account_id.value
         )
         return client.get_remote_status(tunnel, config.zone_id, config.wildcard)
 
@@ -166,6 +214,15 @@ class cf_tunnel_main:
             return self._remote_status(config)
         except CloudflareApiError:
             return RemoteStatus(tunnel_connected=False, dns_bound=False)
+
+    @staticmethod
+    def _is_configured(config: PluginConfig | None) -> bool:
+        return (
+            config is not None
+            and config.zone_id is not None
+            and config.tunnel_id is not None
+            and config.tunnel_name is not None
+        )
 
     @staticmethod
     def _failure(message: str) -> dict[str, object]:
