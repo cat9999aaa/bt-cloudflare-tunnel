@@ -1,0 +1,87 @@
+<meta charset="utf-8">
+<link rel="stylesheet" href="/cf_tunnel/static/cf-tunnel.css">
+
+<main class="cf-tunnel" aria-labelledby="cf-tunnel-title">
+  <header class="cf-tunnel__header">
+    <div class="cf-tunnel__route" aria-hidden="true">
+      <svg viewBox="0 0 96 48" focusable="false">
+        <circle class="cf-tunnel__node cf-tunnel__node--cloud" cx="16" cy="24" r="10"></circle>
+        <path class="cf-tunnel__line" d="M30 24H66"></path>
+        <path class="cf-tunnel__line--amber" d="M45 24H66"></path>
+        <circle class="cf-tunnel__node cf-tunnel__node--panel" cx="80" cy="24" r="10"></circle>
+      </svg>
+    </div>
+    <div class="cf-tunnel__heading">
+      <p class="cf-tunnel__eyebrow">宝塔开发者应用</p>
+      <h1 id="cf-tunnel-title">Cloudflare Tunnel 开发助手</h1>
+      <p>一次配置通配域名；之后只需在宝塔创建网站，由 Web 服务按域名自动分流。</p>
+    </div>
+    <span id="cf-tunnel-overall" class="cf-tunnel__chip cf-tunnel__chip--neutral">正在检查</span>
+  </header>
+
+  <section class="cf-tunnel__section" aria-labelledby="cf-tunnel-status-title">
+    <div class="cf-tunnel__section-heading">
+      <div>
+        <p class="cf-tunnel__eyebrow">当前状态</p>
+        <h2 id="cf-tunnel-status-title">连接健康度</h2>
+      </div>
+      <button id="cf-tunnel-refresh" class="cf-tunnel__button cf-tunnel__button--secondary" type="button">刷新状态</button>
+    </div>
+    <div id="cf-tunnel-status-grid" class="cf-tunnel__status-grid" aria-live="polite">
+      <article class="cf-tunnel__status-item">
+        <p>cloudflared</p>
+        <strong id="cf-tunnel-binary">正在检查</strong>
+        <span id="cf-tunnel-version">尚未获取版本</span>
+      </article>
+      <article class="cf-tunnel__status-item">
+        <p>系统服务</p>
+        <strong id="cf-tunnel-service">正在检查</strong>
+        <span>负责维持本机到 Cloudflare 的出站连接</span>
+      </article>
+      <article class="cf-tunnel__status-item">
+        <p>Cloudflare Tunnel</p>
+        <strong id="cf-tunnel-tunnel">正在检查</strong>
+        <span>Cloudflare 是否检测到本机 Tunnel 连接</span>
+      </article>
+      <article class="cf-tunnel__status-item">
+        <p>DNS 绑定</p>
+        <strong id="cf-tunnel-dns-binding">尚未配置</strong>
+        <span id="cf-tunnel-dns-detail">通配域名是否仍指向当前 Tunnel</span>
+      </article>
+    </div>
+  </section>
+
+  <section class="cf-tunnel__workspace" aria-label="Tunnel 配置工作区">
+    <form id="cf-tunnel-setup" class="cf-tunnel__card cf-tunnel__form" novalidate>
+      <div>
+        <p class="cf-tunnel__eyebrow">首次配置</p>
+        <h2>一键安装并配置</h2>
+        <p class="cf-tunnel__intro">填写 Token 和一个通配测试域名。插件会安装 cloudflared、创建 Tunnel 并绑定通配 DNS。</p>
+      </div>
+      <label for="cf-tunnel-token">Cloudflare API Token <span aria-hidden="true">*</span></label>
+      <input id="cf-tunnel-token" name="token" type="password" autocomplete="off" spellcheck="false" placeholder="粘贴仅用于本插件的 API Token" required>
+      <p class="cf-tunnel__hint">需要：目标 Zone 的 DNS 编辑与 Zone 读取权限，以及账号的 Cloudflare Tunnel 编辑权限。</p>
+      <label for="cf-tunnel-domain">通配测试域名 <span aria-hidden="true">*</span></label>
+      <input id="cf-tunnel-domain" name="wildcard_domain" type="text" autocomplete="off" spellcheck="false" placeholder="例如 *.dev.dashen.wang" required>
+      <p class="cf-tunnel__hint">支持 *.dev.dashen.wang、*.dashen.wang 等左侧通配格式。配置完成后，在宝塔网站中填写匹配域名即可。</p>
+      <div class="cf-tunnel__actions">
+        <button id="cf-tunnel-submit" class="cf-tunnel__button cf-tunnel__button--primary" type="submit">一键安装并配置</button>
+        <button id="cf-tunnel-restart" class="cf-tunnel__button cf-tunnel__button--secondary" type="button">重启 Tunnel 服务</button>
+      </div>
+      <p id="cf-tunnel-feedback" class="cf-tunnel__feedback" role="status" aria-live="polite"></p>
+    </form>
+
+    <aside class="cf-tunnel__card cf-tunnel__safety" aria-labelledby="cf-tunnel-security-title">
+      <p class="cf-tunnel__eyebrow">安全防护</p>
+      <h2 id="cf-tunnel-security-title">开发环境也要设好边界</h2>
+      <ul>
+        <li>不要把宝塔后台、数据库管理工具或无鉴权管理端放入通配域名。</li>
+        <li>需要共享测试环境时，建议在 Cloudflare 配置 Access 访问控制。</li>
+        <li>收紧服务器入站规则，只保留必要服务；Tunnel 仅需要向外建立连接。</li>
+        <li>API Token 只授予本应用所需的最小权限，并在不再使用时立即撤销。</li>
+      </ul>
+    </aside>
+  </section>
+</main>
+
+<script type="text/javascript" src="/cf_tunnel/static/cf-tunnel.js"></script>

@@ -1,0 +1,12 @@
+{
+  "title": "Cloudflare Tunnel 开发助手",
+  "name": "cf_tunnel",
+  "type": "免费应用",
+  "ps": "为宝塔开发环境配置 Cloudflare Tunnel 通配域名",
+  "versions": "0.1.0",
+  "checks": "/www/server/panel/plugin/cf_tunnel",
+  "author": "BT Cloudflare Tunnel",
+  "home": "",
+  "default": true,
+  "display": 1
+}
