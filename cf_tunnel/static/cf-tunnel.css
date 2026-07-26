@@ -48,6 +48,7 @@
 .cf-tunnel h2 { font-size: 16px; font-weight: 650; line-height: 1.4; }
 .cf-tunnel h3 { font-size: 14px; font-weight: 650; line-height: 1.4; }
 .cf-tunnel__eyebrow { color: var(--cf-text-muted); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; line-height: 1.4; margin-block-end: var(--cf-space-1); }
+.cf-tunnel__version { color: var(--cf-text-muted); font-size: 12px; line-height: 1.4; margin-block-start: var(--cf-space-1); }
 .cf-tunnel__subtitle { color: var(--cf-text-muted); font-size: 13px; line-height: 1.55; margin-block-start: var(--cf-space-1); }
 .cf-tunnel__no-break { white-space: nowrap; }
 
@@ -109,6 +110,12 @@
   .cf-tunnel__chip { display: inline-block; margin-block-start: var(--cf-space-3); }
   .cf-tunnel__configuration { border-inline-start: 0; border-block-start: 1px solid var(--cf-border); margin-block-start: var(--cf-space-6); padding-inline-start: 0; padding-block-start: var(--cf-space-6); }
   .cf-tunnel__status-row { grid-template-columns: minmax(6rem, 0.72fr) minmax(0, 1.28fr); }
+  .cf-tunnel__field input, .cf-tunnel__button { min-block-size: 44px; }
+}
+
+@media (max-width: 420px) {
+  .cf-tunnel__actions { align-items: stretch; display: grid; grid-template-columns: 1fr; }
+  .cf-tunnel__button { inline-size: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

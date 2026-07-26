@@ -1,25 +1,29 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+
+try:
+    from .compat import frozen_dataclass
+except ImportError:
+    from compat import frozen_dataclass
 
 
 class DomainValidationError(ValueError):
     """Raised when a wildcard hostname cannot be safely configured."""
 
 
-@dataclass(frozen=True, slots=True)
+@frozen_dataclass
 class WildcardDomain:
     value: str
     hostname: str
 
 
-@dataclass(frozen=True, slots=True)
+@frozen_dataclass
 class CloudflareAccountId:
     value: str
 
 
-@dataclass(frozen=True, slots=True)
+@frozen_dataclass
 class PluginConfig:
     token: str
     wildcard: WildcardDomain

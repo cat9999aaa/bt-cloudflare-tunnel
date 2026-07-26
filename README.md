@@ -2,6 +2,8 @@
 
 一个面向开发者的宝塔 Linux 面板应用：通过一条 Cloudflare Tunnel 与一条通配 DNS 记录，将没有固定公网 IP 的本机宝塔网站用于测试。安装后默认出现在宝塔首页，并提供完整的独立设置页。
 
+当前插件版本：`0.1.2`。版本号同时显示在宝塔「第三方应用」列表和插件设置页顶部。
+
 > 这个插件不管理网站、不填写子域名、也不维护端口映射。通配域名配置完成后，开发者只在宝塔「网站」中新增站点，由宝塔 Web 服务按请求域名自动分流。
 
 ## 功能
@@ -94,6 +96,7 @@ Cloudflare Tunnel
 |---|---|---|
 | cloudflared 未安装 | 本机没有可运行的 Tunnel 客户端 | 在设置页运行一键安装 |
 | 系统服务未运行 | `cloudflared` 服务未连接 | 使用「重启 Tunnel 服务」，再刷新状态 |
+| Cloudflare Tunnel 待配置 | 尚未保存帐户 ID、Token 和通配域名；插件不会在此状态查询 Cloudflare | 先保存最小权限 Token 设置 |
 | Cloudflare Tunnel 未连接 | Cloudflare 未看到活跃连接 | 检查服务器出站网络、Token 和 systemd 日志 |
 | DNS 绑定未绑定 | 通配 CNAME 缺失、未代理或未指向当前 Tunnel | 检查 Cloudflare DNS，必要时重新配置 |
 | 开发通道已就绪 | 本机服务、Tunnel 和 DNS 均处于健康状态 | 可直接在宝塔新增测试网站 |

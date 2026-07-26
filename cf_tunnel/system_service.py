@@ -2,36 +2,38 @@ from __future__ import annotations
 
 import shutil
 import subprocess
-from collections.abc import Callable
-from dataclasses import dataclass
-from typing import final
+from typing import Callable, List, Optional
+
+try:
+    from .compat import frozen_dataclass
+except ImportError:
+    from compat import frozen_dataclass
 
 
-@dataclass(frozen=True, slots=True)
+@frozen_dataclass
 class CommandResult:
     returncode: int
     stdout: str
     stderr: str
 
 
-@dataclass(frozen=True, slots=True)
+@frozen_dataclass
 class OperationResult:
     success: bool
     message: str
 
 
-@dataclass(frozen=True, slots=True)
+@frozen_dataclass
 class CloudflaredStatus:
     installed: bool
     version: str
     service_active: bool
 
 
-Runner = Callable[[list[str]], CommandResult]
-PackageManager = Callable[[], str | None]
+Runner = Callable[[List[str]], CommandResult]
+PackageManager = Callable[[], Optional[str]]
 
 
-@final
 class CloudflaredSystem:
     """Installs and inspects cloudflared through fixed, user-input-free commands."""
 

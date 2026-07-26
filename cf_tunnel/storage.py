@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import cast, final
+from typing import cast
 
 try:
     from .domain import (
@@ -15,7 +15,6 @@ except ImportError:
     from domain import PluginConfig, parse_cloudflare_account_id, parse_wildcard_domain
 
 
-@final
 class ConfigStore:
     """Stores the plugin configuration in a root-readable private JSON file."""
 

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Callable
-from dataclasses import dataclass, replace
+from dataclasses import replace
 from pathlib import Path
-from typing import Protocol, final
+from typing import Callable, Tuple
 
 try:
+    from .compat import frozen_dataclass
     from .cloudflare_api import (
         CloudflareApiError,
         CloudflareClient,
@@ -22,6 +22,7 @@ try:
     from .storage import ConfigStore
     from .system_service import CloudflaredStatus, CloudflaredSystem, OperationResult
 except ImportError:
+    from compat import frozen_dataclass
     from cloudflare_api import (
         CloudflareApiError,
         CloudflareClient,
@@ -39,11 +40,11 @@ except ImportError:
     from system_service import CloudflaredStatus, CloudflaredSystem, OperationResult
 
 
-Setup = Callable[[PluginConfig], tuple[ConfigurationResult, str]]
+Setup = Callable[[PluginConfig], Tuple[ConfigurationResult, str]]
 RemoteStatusReader = Callable[[PluginConfig], RemoteStatus]
 
 
-class SystemOperations(Protocol):
+class SystemOperations:
     def install_package(self) -> OperationResult: ...
 
     def install_service(self, tunnel_token: str) -> OperationResult: ...
@@ -53,7 +54,7 @@ class SystemOperations(Protocol):
     def inspect(self) -> CloudflaredStatus: ...
 
 
-@dataclass(frozen=True, slots=True)
+@frozen_dataclass
 class PluginDependencies:
     store: ConfigStore
     system: SystemOperations
@@ -61,7 +62,6 @@ class PluginDependencies:
     remote_status: RemoteStatusReader
 
 
-@final
 class cf_tunnel_main:
     """Baota plugin endpoint class for Cloudflare Tunnel operations."""
 

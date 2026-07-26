@@ -1,59 +1,59 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Callable, Mapping
-from dataclasses import dataclass
 from http.client import HTTPResponse
-from typing import TypeAlias, cast, final
+from typing import Callable, Dict, List, Mapping, Union, cast
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 try:
+    from .compat import frozen_dataclass
     from .domain import WildcardDomain
 except ImportError:
+    from compat import frozen_dataclass
     from domain import WildcardDomain
 
 _API_BASE = "https://api.cloudflare.com/client/v4"
-JsonScalar: TypeAlias = str | int | float | bool | None
-JsonValue: TypeAlias = JsonScalar | list["JsonValue"] | dict[str, "JsonValue"]
-JsonObject: TypeAlias = dict[str, JsonValue]
+JsonScalar = Union[str, int, float, bool, None]
+JsonValue = Union[JsonScalar, List["JsonValue"], Dict[str, "JsonValue"]]
+JsonObject = Dict[str, JsonValue]
 RequestOpener = Callable[[Request], Mapping[str, object]]
 
 
-@dataclass(frozen=True, slots=True)
+@frozen_dataclass
 class Zone:
     id: str
     name: str
     account_id: str
 
 
-@dataclass(frozen=True, slots=True)
+@frozen_dataclass
 class TunnelDetails:
     id: str
     name: str
     account_id: str
 
 
-@dataclass(frozen=True, slots=True)
+@frozen_dataclass
 class DnsBinding:
     hostname: str
     target: str
 
 
-@dataclass(frozen=True, slots=True)
+@frozen_dataclass
 class RemoteStatus:
     tunnel_connected: bool
     dns_bound: bool
 
 
-@dataclass(frozen=True, slots=True)
+@frozen_dataclass
 class ConfigurationResult:
     zone: Zone
     tunnel: TunnelDetails
     dns_binding: DnsBinding
 
 
-@dataclass(frozen=True, slots=True)
+@frozen_dataclass
 class CloudflareApiError(Exception):
     message: str
 
@@ -61,7 +61,6 @@ class CloudflareApiError(Exception):
         return self.message
 
 
-@final
 class CloudflareClient:
     """Small, token-safe client for the Cloudflare Tunnel and DNS endpoints."""
 

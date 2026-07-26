@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Protocol, final
-
 try:
     from .cloudflare_api import (
         CloudflareApiError,
@@ -22,7 +20,7 @@ except ImportError:
     from domain import PluginConfig, WildcardDomain
 
 
-class TunnelApi(Protocol):
+class TunnelApi:
     def resolve_zone(self, wildcard: WildcardDomain) -> Zone: ...
 
     def create_tunnel(self, zone: Zone, name: str) -> TunnelDetails: ...
@@ -34,7 +32,6 @@ class TunnelApi(Protocol):
     ) -> DnsBinding: ...
 
 
-@final
 class ConfigurationService:
     """Creates the one wildcard Tunnel route used by all Baota development sites."""
 

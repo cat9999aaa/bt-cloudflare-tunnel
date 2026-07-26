@@ -25,11 +25,16 @@
   };
 
   function requestPlugin(action, payload, callback, onError) {
-    if (typeof window.request_plugin !== "function") {
-      onError("此页面必须从宝塔面板打开；本地预览不连接插件接口。");
-      return;
-    }
-    window.request_plugin(pluginName, action, payload, callback, 3600000);
+    $.ajax({
+      type: "POST",
+      url: "/plugin?action=a&s=" + action + "&name=" + pluginName,
+      data: payload,
+      timeout: 3600000,
+      success: callback,
+      error: function () {
+        onError("状态读取失败，请刷新后重试；若持续失败，请查看宝塔插件日志。");
+      }
+    });
   }
 
   function setFeedback(message, state) {
@@ -57,7 +62,7 @@
     $(selectors.binary).text(installed ? "已安装" : "未安装");
     $(selectors.version).text(installed && data.cloudflared_version ? data.cloudflared_version : "等待一键安装");
     $(selectors.service).text(active ? "运行中" : "未运行");
-    $(selectors.tunnel).text(tunnelConnected ? "已连接" : "未连接");
+    $(selectors.tunnel).text(settingsSaved ? (tunnelConnected ? "已连接" : "未连接") : "待配置");
     $(selectors.dnsBinding).text(dnsBound ? "已绑定" : "未绑定");
     $(selectors.dnsDetail).text(configured ? data.wildcard_domain : "先保存设置并完成配置");
     $(selectors.accountId).val(data.account_id || "");
@@ -84,7 +89,7 @@
       setOverall("状态检查失败", "error");
     }, function (message) {
       setFeedback(message, "error");
-      setOverall("未连接宝塔", "error");
+      setOverall("状态读取失败", "error");
     });
   }
 
